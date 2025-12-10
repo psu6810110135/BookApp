@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Form, Input, Alert } from "antd";
+import { Button, Form, Input, Alert, Checkbox } from "antd";
 import axios from "axios";
 
 const URL_AUTH = "/api/auth/login";
@@ -7,15 +7,15 @@ const URL_AUTH = "/api/auth/login";
 export default function LoginScreen(props) {
   const [isLoading, setIsLoading] = useState(false);
   const [errMsg, setErrMsg] = useState(null);
-
   const handleLogin = async (formData) => {
     try {
       setIsLoading(true);
       setErrMsg(null);
-      const response = await axios.post(URL_AUTH, formData);
+      const { remember, ...loginData } = formData;
+      const response = await axios.post(URL_AUTH, loginData);
       const token = response.data.access_token;
       axios.defaults.headers.common = { Authorization: `bearer ${token}` };
-      props.onLoginSuccess(token);
+      props.onLoginSuccess(remember, token);
     } catch (err) {
       console.log(err);
       setErrMsg(err.message);
@@ -24,7 +24,13 @@ export default function LoginScreen(props) {
     }
   };
   return (
-    <Form onFinish={handleLogin} autoComplete="off">
+    <Form
+      onFinish={handleLogin}
+      autoComplete="off"
+      labelCol={{ span: 8 }}
+      style={{ maxWidth: 600 }}
+      initialValues={{remember: true}}
+    >
       {errMsg && (
         <Form.Item>
           <Alert message={errMsg} type="error" />
@@ -37,6 +43,9 @@ export default function LoginScreen(props) {
 
       <Form.Item label="Password" name="password" rules={[{ required: true }]}>
         <Input.Password />
+      </Form.Item>
+      <Form.Item name="remember" valuePropName="checked">
+        <Checkbox>Remember me</Checkbox>
       </Form.Item>
       <Form.Item>
         <Button type="primary" htmlType="submit" loading={isLoading}>

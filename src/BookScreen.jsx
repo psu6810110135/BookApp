@@ -1,6 +1,6 @@
 import "./App.css";
 import { useState, useEffect } from "react";
-import { Divider, Spin } from "antd";
+import { Divider, Spin, Button, Flex } from "antd";
 import axios from "axios";
 import BookList from "./components/BookList";
 import AddBook from "./components/AddBook";
@@ -9,7 +9,7 @@ import EditBook from "./components/EditBook";
 axios.defaults.baseURL = "http://localhost:3000";
 const URL_BOOK = "/api/book";
 const URL_CATEGORY = "/api/book-category";
-function BookScreen() {
+function BookScreen(props) {
   const [totalAmount, setTotalAmount] = useState(0);
   const [bookData, setBookData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -112,15 +112,12 @@ function BookScreen() {
 
   return (
     <>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          marginBottom: "2em",
-        }}
-      >
+      <Flex gap="small" justify="center" align="center">
+        <Button onClick={props.onLogout} type="primary" danger>
+          Logout
+        </Button>
         <AddBook onBookAdded={handleAddBook} categories={categories} />
-      </div>
+      </Flex>
       <Divider>My books worth {totalAmount.toLocaleString()} dollars</Divider>
       <Spin spinning={loading}>
         <BookList
