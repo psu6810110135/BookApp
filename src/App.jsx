@@ -3,7 +3,10 @@ import axios from "axios";
 import { useState } from "react";
 import LoginScreen from "./LoginScreen";
 import BookScreen from "./BookScreen";
+import { Routes, Route, Navigate } from "react-router-dom";
+
 axios.defaults.baseURL = "http://localhost:3000";
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -11,14 +14,25 @@ function App() {
     alert("Login Success with token: " + token);
     setIsAuthenticated(true);
   };
-  
+
   return (
     <>
-      {isAuthenticated ? (
-        <BookScreen />
-      ) : (
-        <LoginScreen onLoginSuccess={handleLoginSuccess} />
-      )}
+      <Routes>
+        <Route
+          path="/login"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/" />
+            ) : (
+              <LoginScreen onLoginSuccess={handleLoginSuccess} />
+            )
+          }
+        />
+        <Route
+          path="/"
+          element={isAuthenticated ? <BookScreen /> : <Navigate to="/login" />}
+        />
+      </Routes>
     </>
   );
 }

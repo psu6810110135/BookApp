@@ -4,14 +4,17 @@ import { Divider, Spin } from "antd";
 import axios from "axios";
 import BookList from "./components/BookList";
 import AddBook from "./components/AddBook";
+import EditBook from "./components/EditBook";
 
 axios.defaults.baseURL = "http://localhost:3000";
 const URL_BOOK = "/api/book";
-
+const URL_CATEGORY = "/api/book-category";
 function BookScreen() {
   const [totalAmount, setTotalAmount] = useState(0);
   const [bookData, setBookData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [editBook, setEditBook] = useState(null);
   const handleLikeBook = async (bookId) => {
     setLoading(true);
     try {
@@ -59,8 +62,46 @@ function BookScreen() {
     }
   };
 
+  const handleEditBook = async (book) => {
+    setEditBook(book);
+  };
+
+  const handleUpdateBook = async (values) => {
+    setLoading(true);
+    try {
+      const { id, category, createdAt, updatedAt, ...dataToSend } = values;
+      dataToSend.price = Number(dataToSend.price);
+      dataToSend.stock = Number(dataToSend.stock);
+      await axios.patch(`${URL_BOOK}/${editBook.id}`, dataToSend);
+      await fetchBooks();
+      setEditBook(null);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(URL_CATEGORY);
+      setCategories(
+        response.data.map((category) => ({
+          label: category.name,
+          value: category.id,
+        }))
+      );
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchBooks();
+    fetchCategories();
   }, []);
 
   useEffect(() => {
@@ -78,7 +119,7 @@ function BookScreen() {
           marginBottom: "2em",
         }}
       >
-        <AddBook onBookAdded={handleAddBook} />
+        <AddBook onBookAdded={handleAddBook} categories={categories} />
       </div>
       <Divider>My books worth {totalAmount.toLocaleString()} dollars</Divider>
       <Spin spinning={loading}>
@@ -86,8 +127,17 @@ function BookScreen() {
           data={bookData}
           onLiked={handleLikeBook}
           onDeleted={handleDeleteBook}
+          onEdit={handleEditBook}
         />
       </Spin>
+      <EditBook
+        onCancel={() => {
+          setEditBook(null);
+        }}
+        onUpdate={handleUpdateBook}
+        book={editBook}
+        categories={categories}
+      />
     </>
   );
 }
